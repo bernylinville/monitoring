@@ -18,10 +18,10 @@ common:
       access_key_id: loki
       secret_access_key: supersecret
       s3forcepathstyle: true
-  compactor_address: http://loki:3100
+  compactor_address: http://loki-write:3100
 
 memberlist:
-  join_members: ["loki"]
+  join_members: ["loki-read", "loki-write"]
   dead_node_reclaim_time: 30s
   gossip_to_dead_nodes_time: 15s
   left_ingesters_timeout: 30s
