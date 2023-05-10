@@ -139,7 +139,7 @@ services:
     restart: always
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
     # only needed for interactive debugging with dlv
 
   loki-write:
@@ -162,7 +162,7 @@ services:
     restart: always
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
 
   # alertmanager to enable receiving alerts
   alertmanager:
