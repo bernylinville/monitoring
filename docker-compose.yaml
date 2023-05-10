@@ -42,7 +42,7 @@ services:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:vv2.43.1
+    image: prom/prometheus:v2.43.1
     ports:
       - 9090:9090
     volumes:
