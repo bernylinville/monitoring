@@ -1,7 +1,7 @@
 version: "3.8"
 
 networks:
-  loki:
+  monitoring:
 
 
 volumes:
@@ -25,7 +25,7 @@ services:
     volumes:
       - ./loki:/loki
     networks:
-      - loki
+      - monitoring
 
   grafana:
     image: grafana/grafana:9.5.1
@@ -39,7 +39,7 @@ services:
       - ./config/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yml
       - grafana:/var/lib/grafana
     networks:
-      - loki
+      - monitoring
 
   prometheus:
     image: prom/prometheus:vv2.43.1
@@ -56,7 +56,7 @@ services:
         '--query.lookback-delta=30s'
       ]
     networks:
-      - loki
+      - monitoring
 
   # for testing purposes only, disable in production
   log-generator:
@@ -81,7 +81,7 @@ services:
       - "9080:9080"
     command: -config.file=/etc/promtail/promtail.yaml
     networks:
-      - loki
+      - monitoring
 
   minio:
     image: minio/minio
@@ -102,7 +102,7 @@ services:
     volumes:
       - ./.data/minio:/data
     networks:
-      - loki
+      - monitoring
 
   loki-gateway:
     image: nginx:1.19
@@ -112,7 +112,7 @@ services:
       - "8080:80"
       - "3100"
     networks:
-      - loki
+      - monitoring
 
   loki-read:
     image: grafana/loki:2.8.2
@@ -130,7 +130,7 @@ services:
       #  - apparmor=unconfined
     command: "-config.file=/etc/loki/loki.yaml -target=read"
     networks:
-      - loki
+      - monitoring
     restart: always
     deploy:
       mode: replicated
@@ -152,7 +152,7 @@ services:
       #   - apparmor=unconfined
     command: "-config.file=/etc/loki/loki.yaml -target=write"
     networks:
-      - loki
+      - monitoring
     restart: always
     deploy:
       mode: replicated
@@ -169,7 +169,7 @@ services:
       - alertmanager-data:/data
     command: --config.file=/config/alertmanager.yml --log.level=debug
     networks:
-      - loki
+      - monitoring
 
   node-exporter:
     image: prom/node-exporter:v1.5.0
