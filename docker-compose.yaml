@@ -47,6 +47,7 @@ services:
 
   promtail:
     image: grafana/promtail:2.8.2
+    container_name: promtail
     privileged: true
     volumes:
       - ./loki/:/var/log/
