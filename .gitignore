@@ -1,3 +1,4 @@
 loki/
 .data
 .env
+.vscode

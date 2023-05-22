@@ -13,11 +13,15 @@ volumes:
 services:
 
   grafana:
-    image: grafana/grafana:9.5.1
+    image: grafana/grafana:9.5.2
     container_name: grafana
+    restart: always
+    depends_on:
+      - prometheus
+      - loki
     privileged: true
     ports:
-      - "3000:3000"
+      - 3000:3000
     env_file:
       - .env
     volumes:
@@ -27,21 +31,23 @@ services:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:v2.43.1
+    image: prom/prometheus:v2.44.0
     container_name: prometheus
     privileged: true
+    restart: always
+    depends_on:
+      - cadvisor
     ports:
       - 9090:9090
     volumes:
       - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
       - prometheus:/prometheus
     command:
-      [
-        '--log.level=debug',
-        '--config.file=/etc/prometheus/prometheus.yml',
-        '--enable-feature=remote-write-receiver',
-        '--query.lookback-delta=30s'
-      ]
+        - '--config.file=/etc/prometheus/prometheus.yml'
+        - '--storage.tsdb.path=/prometheus'
+        - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+        - '--web.console.templates=/usr/share/prometheus/consoles'
+        - '--web.enable-lifecycle'
     networks:
       - monitoring
 
@@ -49,6 +55,7 @@ services:
     image: grafana/promtail:2.8.2
     container_name: promtail
     privileged: true
+    restart: always
     volumes:
       - ./loki/:/var/log/
       - ./config:/etc/promtail/
@@ -62,6 +69,7 @@ services:
     image: grafana/loki:2.8.2
     container_name: loki
     privileged: true
+    restart: always
     volumes:
       - ./config:/etc/loki/
     ports:
@@ -72,14 +80,14 @@ services:
 
   # alertmanager to enable receiving alerts
   alertmanager:
-    image: prom/alertmanager:v0.23.0
+    image: prom/alertmanager:v0.25.0
     container_name: alertmanager
     privileged: true
     restart: unless-stopped
     ports:
-      - "9093:9093"
+      - 9093:9093
     volumes:
-      - "./config:/config"
+      - ./config:/config
       - alertmanager-data:/data
     command: --config.file=/config/alertmanager.yml --log.level=debug
     networks:
@@ -89,13 +97,16 @@ services:
     image: prom/node-exporter:v1.5.0
     container_name: node-exporter
     privileged: true
+    restart: always
     ports:
-      - "9100:9100"
+      - 9100:9100
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
+      - /:/host:ro,rslave
     command:
+      - '--path.rootfs=/host'
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude'
@@ -107,6 +118,7 @@ services:
     image: gcr.io/cadvisor/cadvisor-amd64:v0.47.1
     container_name: cadvisor
     privileged: true
+    restart: always
     devices:
       - /dev/kmsg:/dev/kmsg
     volumes:
@@ -114,9 +126,7 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker:/var/lib/docker:ro
-      # - /cgroup:/cgroup:ro
-    restart: unless-stopped
     ports:
-      - "8081:8080"
+      - 8081:8080
     networks:
       - monitoring
