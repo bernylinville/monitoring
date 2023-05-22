@@ -16,3 +16,5 @@ systemctl restart docker
 docker plugin disable loki --force
 docker plugin rm loki
 ```
+
+> centos7 确保安装docker-ce 版本
