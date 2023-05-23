@@ -15,57 +15,31 @@ services:
   grafana:
     image: grafana/grafana:9.5.2
     container_name: grafana
-    restart: always
-    depends_on:
-      - prometheus
-      - loki
     privileged: true
     ports:
-      - 3000:3000
+      - "3000:3000"
     env_file:
       - .env
     volumes:
       - ./config/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yml
       - grafana:/var/lib/grafana
+    depends_on:
+      - loki
     networks:
       - monitoring
     logging:
-      driver: loki
+      driver: "json-file"
       options:
-        loki-url: "http://loki:3100/loki/api/v1/push"
+        max-size: "1m"
 
-  prometheus:
-    image: prom/prometheus:v2.44.0
-    container_name: prometheus
+  renderer:
+    image: grafana/grafana-image-renderer:3.7.1
+    container_name: renderer
     privileged: true
-    restart: always
-    depends_on:
-      - cadvisor
     ports:
-      - 9090:9090
-    volumes:
-      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
-      - prometheus:/prometheus
-    command:
-        - '--config.file=/etc/prometheus/prometheus.yml'
-        - '--storage.tsdb.path=/prometheus'
-        - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-        - '--web.console.templates=/usr/share/prometheus/consoles'
-        - '--web.enable-lifecycle'
-    networks:
-      - monitoring
-
-  promtail:
-    image: grafana/promtail:2.8.2
-    container_name: promtail
-    privileged: true
-    restart: always
-    volumes:
-      - ./loki/:/var/log/
-      - ./config:/etc/promtail/
-    ports:
-      - "9080:9080"
-    command: -config.file=/etc/promtail/promtail.yaml
+      - "8081:8081"
+    environment:
+      - ENABLE_METRICS="true"
     networks:
       - monitoring
 
@@ -73,12 +47,48 @@ services:
     image: grafana/loki:2.8.2
     container_name: loki
     privileged: true
-    restart: always
     volumes:
       - ./config:/etc/loki/
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/loki.yaml
+    networks:
+      - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+
+  fluent-bit:
+    image: grafana/fluent-bit-plugin-loki:2.8.2-amd64
+    container_name: fluent-bit
+    privileged: true
+    environment:
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
+    volumes:
+      - ./config:/fluent-bit/etc
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:v2.43.1
+    container_name: prometheus
+    privileged: true
+    ports:
+      - 9090:9090
+    volumes:
+      - ./config:/etc/prometheus
+      - prometheus:/prometheus
+    command:
+      [
+        '--config.file=/etc/prometheus/prometheus.yaml',
+        '--storage.tsdb.path=/prometheus',
+        '--enable-feature=remote-write-receiver',
+        '--query.lookback-delta=30s'
+      ]
     networks:
       - monitoring
 
@@ -89,9 +99,9 @@ services:
     privileged: true
     restart: unless-stopped
     ports:
-      - 9093:9093
+      - "9093:9093"
     volumes:
-      - ./config:/config
+      - "./config:/config"
       - alertmanager-data:/data
     command: --config.file=/config/alertmanager.yml --log.level=debug
     networks:
@@ -101,16 +111,13 @@ services:
     image: prom/node-exporter:v1.5.0
     container_name: node-exporter
     privileged: true
-    restart: always
     ports:
-      - 9100:9100
+      - "9100:9100"
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
-      - /:/host:ro,rslave
     command:
-      - '--path.rootfs=/host'
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude'
@@ -131,6 +138,6 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker:/var/lib/docker:ro
     ports:
-      - 8081:8080
+      - 8080:8080
     networks:
       - monitoring
