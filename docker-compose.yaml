@@ -125,19 +125,19 @@ services:
     networks:
       - monitoring
 
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor-amd64:v0.47.1
-    container_name: cadvisor
-    privileged: true
-    restart: always
-    devices:
-      - /dev/kmsg:/dev/kmsg
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker:/var/lib/docker:ro
-    ports:
-      - 8080:8080
-    networks:
-      - monitoring
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor-amd64:v0.47.1
+  #   container_name: cadvisor
+  #   privileged: true
+  #   restart: always
+  #   devices:
+  #     - /dev/kmsg:/dev/kmsg
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker:/var/lib/docker:ro
+  #   ports:
+  #     - 8080:8080
+  #   networks:
+  #     - monitoring
