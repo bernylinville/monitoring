@@ -161,7 +161,7 @@ services:
     privileged: true
     restart: unless-stopped
     ports:
-      - "8081:8080"
+      - "8082:8080"
     env_file:
       - .env
     environment:
