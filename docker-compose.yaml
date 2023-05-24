@@ -42,6 +42,10 @@ services:
       - ENABLE_METRICS="true"
     networks:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
 
   promtail:
     image: grafana/promtail:2.8.2
@@ -55,6 +59,10 @@ services:
     command: -config.file=/etc/promtail/promtail.yaml
     networks:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
 
   loki:
     image: grafana/loki:2.8.2
@@ -85,6 +93,10 @@ services:
       - "24224:24224/udp"
     networks:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
 
   prometheus:
     image: prom/prometheus:v2.43.1
@@ -104,6 +116,10 @@ services:
       ]
     networks:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
 
   # alertmanager to enable receiving alerts
   alertmanager:
@@ -119,6 +135,10 @@ services:
     command: --config.file=/config/alertmanager.yml --log.level=debug
     networks:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
 
   node-exporter:
     image: prom/node-exporter:v1.5.0
@@ -137,6 +157,10 @@ services:
       - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
     networks:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor-amd64:v0.47.1
@@ -154,6 +178,10 @@ services:
       - 8080:8080
     networks:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
 
   prometheusalert:
     image: feiyu563/prometheus-alert:latest
@@ -173,3 +201,7 @@ services:
       - TG_MODE_CHAN=1
     networks:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
