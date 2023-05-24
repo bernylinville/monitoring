@@ -198,7 +198,7 @@ services:
       - PA_TITLE=PrometheusAlert
       - PA_OPEN_FEISHU=1
       - PA_OPEN_TG=1
-      - TG_MODE_CHAN=1
+      - PA_TG_MODE_CHAN=1
     networks:
       - monitoring
     logging:
