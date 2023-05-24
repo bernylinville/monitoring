@@ -1,8 +1,18 @@
 route:
-  receiver: 'default-receiver'
+  receiver: telegram
   group_wait: 30s
   group_interval: 30m
   group_by: [ alertname ]
+  routes:
+  - receiver: telegram
+    continue: true
+  - receiver: feishu
+    continue: true
 
 receivers:
-  - name: 'default-receiver'
+- name: 'feishu'
+  webhook_configs:
+  - url: 'http://prometheusalert:8080/prometheusalert?type=fs&tpl=prometheus-fs'
+- name: 'telegram'
+  webhook_configs:
+  - url: 'http://prometheusalert:8080/prometheusalert?type=tg&tpl=prometheus-fs'

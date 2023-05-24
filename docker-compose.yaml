@@ -43,6 +43,19 @@ services:
     networks:
       - monitoring
 
+  promtail:
+    image: grafana/promtail:2.8.2
+    container_name: promtail
+    privileged: true
+    volumes:
+      - /var/log/:/var/log/
+      - ./config:/etc/promtail/
+    ports:
+      - "9080:9080"
+    command: -config.file=/etc/promtail/promtail.yaml
+    networks:
+      - monitoring
+
   loki:
     image: grafana/loki:2.8.2
     container_name: loki
@@ -125,19 +138,38 @@ services:
     networks:
       - monitoring
 
-  # cadvisor:
-  #   image: gcr.io/cadvisor/cadvisor-amd64:v0.47.1
-  #   container_name: cadvisor
-  #   privileged: true
-  #   restart: always
-  #   devices:
-  #     - /dev/kmsg:/dev/kmsg
-  #   volumes:
-  #     - /:/rootfs:ro
-  #     - /var/run:/var/run:rw
-  #     - /sys:/sys:ro
-  #     - /var/lib/docker:/var/lib/docker:ro
-  #   ports:
-  #     - 8080:8080
-  #   networks:
-  #     - monitoring
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor-amd64:v0.47.1
+    container_name: cadvisor
+    privileged: true
+    restart: always
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    ports:
+      - 8080:8080
+    networks:
+      - monitoring
+
+  prometheusalert:
+    image: feiyu563/prometheus-alert:latest
+    container_name: prometheusalert
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - PA_LOGIN_USER=prometheusalert
+      - PA_LOGIN_PASSWORD=prometheusalert
+      - PA_TITLE=PrometheusAlert
+      - PA_OPEN_FEISHU=1
+      - PA_OPEN_TG=1
+      - TG_MODE_CHAN=1
+    networks:
+      - monitoring
