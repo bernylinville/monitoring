@@ -16,7 +16,7 @@ services:
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     restart: unless-stopped
     ports:
-      - 9100:9100
+      - 19100:9100
     logging:
       driver: "json-file"
       options:
